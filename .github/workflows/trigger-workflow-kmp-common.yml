@@ -1,0 +1,79 @@
+name: Triggered from kmp-common-sdk
+
+on:
+  repository_dispatch:
+    types: [download_xcframework]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Prepare release branch
+        env:
+          VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          BRANCH="release/$VERSION"
+          echo "🪄 Preparing release branch: $BRANCH"
+
+          # Проверяем, существует ли такая ветка
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            echo "⚠️ Branch $BRANCH already exists, reusing"
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+          else
+            echo "🌱 Creating new branch $BRANCH"
+            git checkout -b "$BRANCH"
+          fi
+
+      - name: Download XCFramework from kmp-common-sdk release
+        env:
+          VERSION: ${{ github.event.client_payload.version }}
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo "📦 Downloading MindboxCommon.xcframework.zip for version $VERSION"
+          curl -L -o MindboxCommon.xcframework.zip "https://github.com/vailence/kmp-common-sdk/releases/download/$VERSION/MindboxCommon.xcframework.zip"
+          echo "🧩 Unzipping..."
+          unzip -o MindboxCommon.xcframework.zip -d ./MindboxCommon.xcframework
+
+      - name: Make script executable
+        run: chmod +x .github/update_common_podspec_version.sh
+
+      - name: Update version in MindboxCommon.podspec
+        env:
+          VERSION: ${{ github.event.client_payload.version }}
+        run: .github/update_common_podspec_version.sh "$VERSION"
+
+      - name: Commit changes to release branch
+        env:
+          VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          git add MindboxCommon.xcframework MindboxCommon.podspec
+          git commit -m "Update XCFramework to version $VERSION" || echo "⚠️ No changes to commit"
+          git push --set-upstream origin "$(git branch --show-current)"
+
+      - name: Create Pull Request into master
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          BRANCH=$(git branch --show-current)
+          BASE_BRANCH="master"
+
+          echo "📬 Creating Pull Request: $BRANCH → $BASE_BRANCH"
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH" \
+            --title "Release $VERSION" \
+            --body "Automated PR to update XCFramework for version $VERSION"
