@@ -9,7 +9,7 @@ on:
 jobs:
   publish-MindboxCommon:
     if: ${{ github.event.pull_request.merged == true }}
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,7 +20,7 @@ jobs:
           gem install cocoapods xcodeproj
           pod --version
 
-      - name: Deploy to Cocoapods MindboxLogger
+      - name: Deploy to Cocoapods MindboxCommon
         run: |
           pod lib lint MindboxCommon.podspec --allow-warnings
           pod trunk push MindboxCommon.podspec --allow-warnings --verbose
