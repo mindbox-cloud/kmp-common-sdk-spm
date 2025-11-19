@@ -1,4 +1,4 @@
-framework module MindboxCommon {
+framework module "MindboxCommon" {
     umbrella header "MindboxCommon.h"
 
     export *

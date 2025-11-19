@@ -6,7 +6,7 @@
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
 
-@class MindboxCommonMindboxCommon, MindboxCommonCustomerAbMixerCompanion, MindboxCommonMindboxUtils, MindboxCommonMindboxUtilsStopwatch, MindboxCommonKotlinThrowable, MindboxCommonKotlinArray<T>, MindboxCommonKotlinException, MindboxCommonKotlinRuntimeException;
+@class MindboxCommonCustomerAbMixerCompanion, MindboxCommonKotlinArray<T>, MindboxCommonKotlinException, MindboxCommonKotlinRuntimeException, MindboxCommonKotlinThrowable, MindboxCommonMindboxCommon, MindboxCommonMindboxUtils, MindboxCommonMindboxUtilsStopwatch;
 
 @protocol MindboxCommonCustomerAbMixer, MindboxCommonKotlinIterator;
 
@@ -195,8 +195,24 @@ __attribute__((swift_name("MindboxUtils.Stopwatch")))
 + (instancetype)allocWithZone:(struct _NSZone *)zone __attribute__((unavailable));
 + (instancetype)stopwatch __attribute__((swift_name("init()")));
 @property (class, readonly, getter=shared) MindboxCommonMindboxUtilsStopwatch *shared __attribute__((swift_name("shared")));
+
+/***
+ * Start tracking duration with tag
+ */
 - (void)startTag:(NSString *)tag __attribute__((swift_name("start(tag:)")));
+
+/***
+ * Stop tracking duration from call of [start] with the same tag
+ *
+ * @return Duration in nanoseconds or null if tag not found
+ */
 - (id _Nullable)stopTag:(NSString *)tag __attribute__((swift_name("stop(tag:)")));
+
+/***
+ * Track duration from call of [start] with the same tag
+ *
+ * @return Duration in nanoseconds or null if tag not found
+ */
 - (id _Nullable)trackTag:(NSString *)tag __attribute__((swift_name("track(tag:)")));
 @property (readonly) NSString *GET_PUSH_TOKENS __attribute__((swift_name("GET_PUSH_TOKENS")));
 @property (readonly) NSString *INIT_PUSH_SERVICES __attribute__((swift_name("INIT_PUSH_SERVICES")));
